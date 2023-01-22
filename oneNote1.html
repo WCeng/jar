@@ -1,0 +1,965 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+
+
+    <script src="https://how2j.cn/study/js/jquery/2.0.0/jquery.min.js"></script>
+    <link href="https://how2j.cn/study/css/bootstrap/3.3.6/bootstrap.min.css" rel="stylesheet">
+    <script src="https://how2j.cn/study/js/bootstrap/3.3.6/bootstrap.min.js"></script>
+    <script src="https://cdn.staticfile.org/vue/2.2.2/vue.min.js"></script>
+
+    <link type="text/css" rel="stylesheet"
+          href="https://wceng.github.io/syntaxhighlighter_3.0.83/styles/shCoreDefault.css" id="css1"/>
+    <script type="text/javascript" src="https://wceng.github.io/syntaxhighlighter_3.0.83/scripts/shCore.js"
+            id="js1"></script>
+
+</head>
+<body>
+
+<style>
+    body {
+        background-color: #C7EDCC;
+    }
+
+    .onenote {
+        /*text-align: center;*/
+        width: 80%;
+        border: 1px solid #999999;
+        position: relative;
+    }
+
+    .contentDiv {
+        text-align: left;
+        width: 100%;
+        border: 1px dashed #999999;
+        outline: none;
+        padding: 15px;
+        margin-bottom: 200px;
+        user-modify: read-only;
+        /*letter-spacing: 0.5px;*/
+        font-family: "Helvetica Neue",Helvetica,Tahoma,Arial,STXihei,"Microsoft YaHei",微软雅黑,sans-serif;
+    }
+
+    /*.contentDiv div{*/
+    /*    font-family: 宋体;*/
+    /*}*/
+
+    .codeDiv {
+        text-align: left;
+    }
+
+    .codeDiv {
+        /* width: 500px; */
+        /* height: 500px; */
+    }
+
+    .titleDiv {
+        border: 1px solid #999999;
+        height: 100%;
+        width: 20%;
+    }
+
+    .knowledgeTitle {
+        display: block;
+        text-align: center;
+        font-weight: bold;
+        font-size: 20px;
+        width: 60%;
+        margin: 20px auto 30px;
+    }
+
+    .copySpan {
+        cursor: pointer;
+        z-index: 1;
+    }
+
+    .save {
+        width: 70px;
+    }
+
+    .exportButton {
+        position: absolute;
+        top: 10px;
+    }
+
+    .importButton {
+        position: absolute;
+        top: 10px;
+        left: 50px;
+    }
+
+    .adjustDiv {
+        width: 80%;
+        margin: 20px auto;
+        position: relative;
+    }
+
+    .editSpan {
+        cursor: pointer;
+        font-size: 16px;
+        vertical-align: center;
+        margin-left: 30px;
+    }
+
+    pre {
+        position: relative;
+        outline: none;
+        display: block;
+    }
+
+    /*pre:hover {*/
+    /*    cursor: pointer;*/
+    /*}*/
+
+    .copyButton {
+        position: absolute;
+        right: 0px;
+        top: 0px;
+        opacity: 0.4;
+        display: block;
+    }
+
+    .changeTheme {
+        margin-left: 30px;
+    }
+
+    .dark {
+        background-color: rgba(0, 0, 0, 0.99);
+        color: white;
+        opacity: 0.7;
+    }
+
+    .contentDiv img {
+        display: block;
+    }
+
+    .adjustDivAfterDiv button {
+        display: block;
+    }
+
+    .syntaxhighlighter .toolbar {
+        display: none !important;
+    }
+
+    .gutter .line {
+        cursor: pointer;
+    }
+    .titleDiv{
+        overflow-y: scroll;
+        overflow-x: hidden;
+        height: 800px;
+        padding-bottom: 500px;
+    }
+    .titleDiv::-webkit-scrollbar{
+        display: none;
+    }
+
+</style>
+
+<div id="bigDiv">
+    <div class="onenote pull-left" id="oneNote">
+        <div class="adjustDiv">
+            <button class="exportButton btn btn-info"><span class="	glyphicon glyphicon-export"></span> </button>
+            <button class="importButton btn btn-info"><span class="	glyphicon glyphicon-import"></span> </button>
+            <input type="text" class="knowledgeTitle form-control" v-model="title" v-on:blur="blurSaveTitle">
+
+            <span class="editSpan"><span class="glyphicon glyphicon-lock "></span></span>
+            <button class="btn btn-success changeTheme">切换主题</button>
+            <button class="btn btn-success addLittleTitle">添加小标题</button>
+            <button class="save btn btn-success pull-right">保存</button>
+            <div style="clear: both"></div>
+
+
+            <div class="contentDiv" contenteditable="true" v-html="eachContent" @blur="blurSaveContent($event)"
+                 ref="contentDiv"></div>
+            <input class="littleTitleSetting" style="display: none">
+
+        </div>
+        <div class="adjustDivAfterDiv" style="position:absolute; right: 0px; width: 10%; height: 100%; top: 0px; ">
+            <button class="btn btn-default" btn="1"
+                    style="position: absolute; display: none; color: #c40000 ;font-weight: 900; ">font
+            </button>
+            <button class="btn btn-default" btn="2" style="position: absolute; display: none;font-weight: 900; ">font
+            </button>
+            <button class="btn btn-default" btn="3"
+                    style="position: absolute; display: none;font-weight: 900; font-size: 17px;">font
+            </button>
+            <button class="btn btn-default" btn="4"
+                    style="position: absolute; display: none;font-weight: 900; color: #c9a958;">font
+            </button>
+
+            <button class="addCodeButton" style="display: none; position: absolute" v-on:click="addDefaultCode">D
+                <span class="glyphicon glyphicon-plus" title="添加代码"></span>
+            </button>
+            <button class="addCodeButton" style="display: none; position: absolute" v-on:click="addJavaCode">J
+                <span class="glyphicon glyphicon-plus" title="添加代码"></span>
+            </button>
+            <button class="addCodeButton" style="display: none; position: absolute" v-on:click="addXmlCode">X
+                <span class="glyphicon glyphicon-plus" title="添加代码"></span>
+            </button>
+
+        </div>
+        <span class="glyphicon glyphicon-minus hideTitle	"
+              style="position: absolute; right: 10px; top: 10px; font-size: 20px; cursor: pointer"></span>
+    </div>
+
+
+    <div class="pull-right titleDiv" id="titleDiv">
+        <div class="list-group listTitle">
+            <a href="#" style="width: 50px; display: inline-block" v-on:click="addTitle" class="list-group-item list-group-item-default addTitleLink">
+                <span class="glyphicon glyphicon-plus"></span>
+            </a>
+            <a href="#" style="width: 50px; display: inline-block" class="list-group-item list-group-item-default searchTitle">
+                <span class="glyphicon glyphicon-search"></span>
+            </a>
+            <input class="searchInput " style="display: none; width: 50px; outline: none">
+            <a href="#" v-for="(titleLink,index) in titles" v-on:click="showTitle(titleLink)"
+               class="list-group-item list-group-item-success titleLink">
+                {{index + 1 + ".  " + titleLink}}
+                <span class="glyphicon glyphicon-trash pull-right deleteLink" @click="deleteTitle(titleLink)"></span>
+            </a>
+        </div>
+    </div>
+
+
+    <div style="clear: both"></div>
+    <input type="file" class="hidden" id="fileInput" onchange="getFileContent(value)">
+    <textarea class="codeTA" style="display: none" v-on:blur="blurSaveCode"></textarea>
+    <span class='glyphicon glyphicon-chevron-up upToTop' style='font-size: 30px; display: none'></span>
+
+</div>
+</body>
+</html>
+
+
+<script>
+
+
+    let vue1 = new Vue({
+        el: "#bigDiv",
+        data: {
+            titles: getTitle(),
+            eachContent: localStorage.getItem(getTitle()[getTitle().length - 1]),
+            title: getTitle()[getTitle().length - 1],
+            JORX: "J"
+        },
+
+        methods: {
+            showTitle: function (title) {
+                this.title = title;
+                tempTitle = title;
+                this.eachContent = localStorage.getItem(title);
+                setTimeout(function () {
+                    imgAdapt()
+                    ifEdit()
+                }, 10)
+            },
+            //    添加标题
+            addTitle: function () {
+                this.title = "";
+                this.eachContent = ""
+                $(".knowledgeTitle").focus();
+            },
+            //    删除标题
+            deleteTitle: function (title) {
+                let ifDelete = confirm("确认要删除吗？");
+                if (ifDelete) {
+                    let titleList = getTitle();
+                    titleList = titleList.filter((x) => x !== title);
+                    localStorage.removeItem(title);
+                    saveTitles(titleList);
+                    location.reload();
+                }
+            },
+            //    失去焦点保存标题
+            blurSaveTitle: function () {
+                let titleList = getTitle();
+                for (let i in titleList) {
+                    if (titleList[i] === this.title || this.title.trim().length === 0) {
+                        return;
+                    }
+                }
+                titleList.push(this.title);
+                saveTitles(titleList);
+                location.reload()
+            },
+            //    失去焦点保存内容
+            blurSaveContent: function (event) {
+                if (this.title.trim().length === 0) {
+                    $(".knowledgeTitle").focus()
+                    return;
+                }
+                let content = event.currentTarget.innerHTML;
+                localStorage.setItem(this.title, content);
+
+                setTimeout(function () {
+                    imgAdapt()
+                }, 10)
+            },
+            //添加默认代码
+            addDefaultCode: function () {
+                this.JORX = "D";
+                $(".codeTA").show()
+                $(".codeTA").focus()
+
+            },
+            //    添加Java代码
+            addJavaCode: function () {
+                this.JORX = "J"
+                $(".codeTA").show()
+                $(".codeTA").focus()
+            },
+            //    添加Xml代码
+            addXmlCode: function () {
+                this.JORX = "X"
+                $(".codeTA").show()
+                $(".codeTA").focus()
+            },
+            //TA失去焦点添加代码
+            blurSaveCode: function () {
+                $(".codeTA").hide()
+                var value = $(".codeTA").val();
+                if (value.length === 0) {
+                    $(".contentDiv").html($(".contentDiv").html() + "<br><br>")
+                    let el = $(".contentDiv")[0]
+                    removeRangeToLast(el)
+                    return
+                }
+
+                // value = HTMLEncode(value)
+                let preele;
+                if (this.JORX === "J") {
+                    preele = $("<script type='syntaxhighlighter' class='brush: java'>");
+                    let str = "<![CDATA[" + value + "]]>";
+                    str = HTMLEncode(str);
+                    preele.append(str)
+                } else {
+                    if (this.JORX === "X") {
+                        preele = $("<script type='syntaxhighlighter' class='brush: xml'>")
+                        let str = "<![CDATA[" + value + "]]>";
+                        str = HTMLEncode(str);
+                        preele.append(str)
+                    } else {
+                        value = html_encode(value)
+                        preele = $("<pre>")
+                        preele.append(value)
+                    }
+                }
+
+                preele.appendTo($(".contentDiv"));
+                $(".contentDiv").html($(".contentDiv").html() + "<br><br>")
+                $(".codeTA").val("");
+                //重新渲染代码高亮
+                SyntaxHighlighter.highlight();
+                let el = $(".contentDiv")[0]
+                removeRangeToLast(el)
+            }
+        }
+    })
+
+
+    //新增或重要代码标记
+    let backgroundIndex = false;
+    let constantRowIndex1;
+    let constantRowIndex2;
+    let dblIndexFound = false;
+    $(".contentDiv").on("click", ".gutter .line", function () {
+        let ifSelected = typeof ($(this).attr("style")) === "undefined";
+        if (ifSelected) {
+            $(this).attr("style", "background-color: #2c0 !important")
+            let rowIndex = parseInt($(this).text()) - 1;
+            $(this).parent().next().find(".line:eq(" + rowIndex + ")").attr("style", "background-color: #dfdfdf !important")
+        } else {
+            $(this).removeAttr("style");
+            let rowIndex = parseInt($(this).text()) - 1;
+            $(this).parent().next().find(".line:eq(" + rowIndex + ")").removeAttr("style")
+
+        }
+    })
+    let firstClickEle;
+    $(".contentDiv").on("dblclick", ".gutter .line", function () {
+        $(this).attr("style", "background-color: #2c0 !important")
+        let rowIndex = parseInt($(this).text()) - 1;
+        $(this).parent().next().find(".line:eq(" + rowIndex + ")").attr("style", "background-color: #dfdfdf !important");
+
+        dblIndexFound = !dblIndexFound;
+        if (dblIndexFound) {
+            constantRowIndex1 = rowIndex;
+            constantRowIndex2 = -1;
+            firstClickEle = $(this);
+        } else {
+            constantRowIndex2 = rowIndex;
+            if(constantRowIndex2  <= constantRowIndex1){
+                return;
+            }
+            $(this).parent().next().find(".line:eq(" + constantRowIndex1 + ")")
+                .nextUntil($(this).parent().next().find(".line:eq(" + constantRowIndex2 + ")"))
+                .each(function () {
+                    firstClickEle.next().attr("style", "background-color: #2c0 !important");
+                    firstClickEle = firstClickEle.next();
+                    $(this).attr("style", "background-color: #dfdfdf !important");
+                })
+        }
+
+    })
+
+    //屏蔽鼠标右击
+    $(".adjustDivAfterDiv, .titleLink").bind("contextmenu", function () {
+        return false;
+    })
+    //鼠标右击唤出添加代码按钮
+    $(".adjustDivAfterDiv").mousedown(function (e) {
+        if (e.which === 3) {
+            $(".addCodeButton").show();
+            let top = e.screenY - 100;
+            let topscroll = parseInt($(document).scrollTop());
+            $(".addCodeButton").each(function () {
+                $(this).show();
+                $(this).css({"left": "0px", "top": top + topscroll, "width": "50px"});
+                top += 28;
+            })
+        }
+    })
+
+
+    $(".codeTA").hide()
+
+    //内容自动保存
+    let i = 0;
+    let saveIndex = false;
+    $(".save").click(function () {
+        saveIndex = !saveIndex;
+        if (saveIndex) {
+            i = 0;
+            $(this).html("saving")
+
+            let interval = setInterval(function () {
+                saveContent()
+                i--;
+                console.log(i)
+                let but = $(".save").html();
+                $(".save").html(but + ".")
+                if (i % 4 == 0) {
+                    $(".save").html("saving");
+                }
+                if (i > 0) {
+                    clearInterval(interval)
+                    $(".save").html("保存");
+                }
+            }, 2000)
+
+        } else {
+            i = 2;
+        }
+
+    })
+
+    let tempTitle = $(".knowledgeTitle").val();
+
+    function saveContent() {
+        let title = $(".knowledgeTitle").val()
+        if (title.length !== tempTitle.length) {
+            return;
+        }
+
+        if (title.trim().length === 0) {
+            $(".knowledgeTitle").focus()
+            return;
+        }
+        let content = $(".contentDiv").html();
+        localStorage.setItem(title, content);
+    }
+
+    //自动点击保存按钮
+    //     $(".save").click();
+    //双击标题清空
+    $(".knowledgeTitle").dblclick(function () {
+        $(this).val("");
+        $(this).focus();
+    })
+
+    //添加内容里的小标题
+    $(".addLittleTitle").click(function () {
+        $(".littleTitleSetting").show();
+        $(".littleTitleSetting").focus();
+    })
+    $(".littleTitleSetting").blur(function () {
+        $(".littleTitleSetting").hide()
+        let littleTitle = $(this).val();
+        $(".contentDiv").html($(".contentDiv").html() + "<br>" + "<h3 style='font-family: 楷体; font-weight: bold'>" + littleTitle + "</h3>")
+        $(this).val("")
+        let el = $(".contentDiv")[0];
+        removeRangeToLast(el)
+    })
+
+    //隐藏标题栏
+    let hideTitleIndex = false;
+    $(".hideTitle").click(function () {
+        hideTitleIndex = !hideTitleIndex;
+        if (hideTitleIndex) {
+            $(".titleDiv").hide();
+            $(".onenote").css("width", "100%")
+        } else {
+            $(".onenote").css("width", "80%")
+            $(".titleDiv").show()
+        }
+    })
+
+    //可编辑
+    let editSpanFound = true;
+    $(".editSpan").click(function () {
+        if (editSpanFound) {
+            $(this).attr("style", "color: #000000")
+        } else {
+            $(this).attr("style", "color: #999999")
+        }
+        editSpanFound = !editSpanFound;
+
+        var contentDivCon = $(".contentDiv").attr("contenteditable");
+        if (contentDivCon == "true") {
+            $(".contentDiv").attr("contenteditable", "false")
+            $("pre").attr("contenteditable", "false")
+        } else {
+            $(".contentDiv").attr("contenteditable", "true")
+            $("pre").attr("contenteditable", "true")
+        }
+    })
+    $(".editSpan").attr("style", "color: #999999")
+
+    // $(".editSpan").click()
+
+    function ifEdit() {
+        var contentDivCon = $(".contentDiv").attr("contenteditable");
+        if (contentDivCon == "true") {
+            $("pre").attr("contenteditable", "true")
+        } else {
+            $("pre").attr("contenteditable", "false")
+        }
+    }
+
+    //图片自适应
+    let divWidth = $(".contentDiv").css("width");
+
+    function imgAdapt() {
+        // $(".contentDiv img").each(function (index, element) {
+        //     let width = $(this).css("width");
+        //     if (width > divWidth) {
+        //         $(this).css("width", "100%")
+        //     }
+        // })
+    }
+
+    imgAdapt()
+
+    //切换主题
+    let found = false;
+    $(".changeTheme").click(function () {
+        if (found === false) {
+            $("body").addClass("dark")
+        } else {
+            $("body").removeClass("dark")
+        }
+        found = !found;
+    })
+
+    //复制代码
+    $(".contentDiv").on("mouseenter", "pre, .syntaxhighlighter", function () {
+        $(this).append("<button class='copyButton' contenteditable='false'>复制</button>")
+    })
+    $(".contentDiv").on("mouseleave", "pre, .syntaxhighlighter", function () {
+        $(".copyButton").remove()
+    })
+    $(".contentDiv").on("click", ".copyButton", function () {
+        $(this).hide();
+        var selection = window.getSelection();
+        selection.removeAllRanges();
+        var range = document.createRange();
+        let con = $(this).parent();
+        if (typeof (con.find("td.code")[0]) !== "undefined") {
+            range.selectNodeContents(con.find("td.code")[0]); // 需要选中的dom节点
+        } else {
+            range.selectNodeContents(con[0]);
+        }
+        selection.addRange(range);
+
+        try {
+            document.execCommand("copy", undefined, undefined)
+        } catch (e) {
+            console.log("浏览器不支持该功能")
+        }
+    })
+
+    //图片识别
+    let imageFounding = true;
+    $(".contentDiv").on("dblclick", "img", function () {
+        if(imageFounding){
+            $(this).css("width", "40%")
+        }else {
+            $(this).css("width", "100%")
+        }
+        imageFounding = !imageFounding;
+    })
+
+
+    $(".contentDiv").on("paste", function () {
+        setTimeout(function () {
+            let lastImg = $(".contentDiv img:not([compressed])").last();
+            if (lastImg.length !== 0) {
+                compressImage(lastImg, 0.2);
+            }
+            lastImg.attr("compressed", "0")
+        }, 100)
+    })
+
+    //标题高亮显示
+    $(".titleLink").click(function () {
+        $(".titleLink").each(function () {
+            $(this).attr("style", "")
+        })
+        $(this).css("color", "#c40000")
+    })
+    $(".titleLink").last().css("color", "#c40000")
+
+
+    //压缩图片
+    function compressImage(jqImgEle, quality) {
+        let base64 = jqImgEle.attr("src");
+        let img = new Image();
+        img.setAttribute("crossOrigin", "anonymous")
+        img.src = base64
+        img.onload = function () {
+            let imgWidth = img.width
+            let imgHeight = img.height
+            //    create canvas
+            let canvas = document.createElement("canvas")
+            let ctx = canvas.getContext("2d")
+            canvas.width = imgWidth
+            canvas.height = imgHeight
+            ctx.drawImage(img, 0, 0, imgWidth, imgHeight)
+            // 获取压缩后图片base64
+            let base = canvas.toDataURL("image/jpeg", quality)
+            jqImgEle.attr("src", base);
+        }
+    }
+
+    // 编译和反编译
+    function html_encode(str) {
+        var s = "";
+        if (str.length == 0) return "";
+        s = str.replace(/&/g, "&amp;");
+        s = s.replace(/</g, "&lt;");
+        s = s.replace(/>/g, "&gt;");
+        s = s.replace(/ /g, "&nbsp;");
+        s = s.replace(/\'/g, "&#39;");
+        s = s.replace(/\"/g, "&quot;");
+        s = s.replace(/\n/g, "<br/>");
+        return s;
+    }
+
+    //两个都是转译
+    function HTMLEncode(html) {
+        var temp = document.createElement("div");
+        (temp.textContent != null) ? (temp.textContent = html) : (temp.innerText = html);
+        var output = temp.innerHTML;
+        temp = null;
+        return output;
+    }
+
+    //    标题失去焦点保存
+    $(".knowledgeTitle").blur(function () {
+        var title = $(this).val();
+
+        let found = true;
+
+        var titleList = getTitle();
+        for (var i in titleList) {
+            if (titleList[i] == title || 0 == title.length) {
+                found = false;
+                break;
+            }
+        }
+        if (found) {
+            titleList.push(title)
+            saveTitles(titleList)
+        }
+    })
+
+
+    //可编辑元素里光标移到最后
+    function removeRangeToLast(el) {
+        var range = document.createRange();
+        range.selectNodeContents(el);
+        range.collapse(false);
+        var sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(range);
+    }
+
+    //  得到标题
+    function getTitle() {
+        var titleList = new Array();
+        var titles = localStorage.getItem("titles")
+        if (titles == null) {
+            return titleList;
+        }
+        var titleArray = titles.split("|||");
+        for (var i in titleArray) {
+            if (titleArray[i].trim().length != 0) {
+                titleList.push(titleArray[i]);
+            }
+        }
+        return titleList;
+    }
+
+
+    //如果titles是空，则创建
+    if (localStorage.getItem("titles") == null) {
+        localStorage.setItem("titles", "");
+    }
+
+    //保存标题
+    function saveTitles(titleList) {
+        var titleStr = ""
+        for (var i in titleList) {
+            titleStr += titleList[i] + "|||"
+        }
+        localStorage.setItem("titles", titleStr);
+    }
+
+    //    备份文件(导出)
+    $("button.exportButton").on("click", function () {
+
+        var textTitles = localStorage.getItem("titles");
+        var titleList = getTitle();
+        var content = "";
+        for (var i in titleList) {
+            var textEachContent = localStorage.getItem(titleList[i]);
+            content += textEachContent + "||||"
+        }
+        var textContent = textTitles + "&&&" + "\r\n" + content;
+        exportRaw('oneNoteData', textContent)
+    })
+
+    function fakeClick(obj) {
+        var ev = document.createEvent("MouseEvents");
+        ev.initMouseEvent("click", true, false, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
+        obj.dispatchEvent(ev);
+    }
+
+    function exportRaw(name, data) {
+        var urlObject = window.URL || window.webkitURL || window;
+        var export_blob = new Blob([data]);
+        var save_link = document.createElementNS("http://www.w3.org/1999/xhtml", "a")
+        save_link.href = urlObject.createObjectURL(export_blob);
+        save_link.download = name;
+        fakeClick(save_link);
+    }
+
+    //    导入文件
+    $(".importButton").click(function () {
+        let confirmImport = confirm("导入前要记得备份数据");
+        if (confirmImport){
+            $("#fileInput").click()
+        }
+    })
+
+    function getFileContent(value) {
+        localStorage.clear()
+        var doc = document.getElementById('fileInput')
+        var fileName = doc.files[0].name;
+        var selectedFile = doc.files[0];
+
+        var reader = new FileReader();//这里是核心！！！读取操作就是由它完成的。
+        reader.readAsText(selectedFile);//读取文件的内容
+
+        reader.onload = function () {
+            var content = this.result;
+            var titles = content.split("&&&")[0];
+            var contents = content.split("&&&")[1];
+            var contentList = contents.split("||||");
+            var index;
+            for (var i in contentList) {
+                if (contentList[i].trim().length === 0) {
+                    index = i;
+                    break;
+                }
+            }
+            if (null != index) {
+                contentList.splice(index, 1);
+            }
+            localStorage.setItem("titles", titles);
+            var titleList = titles.split("|||")
+            titleList.splice(titleList.length - 1, 1);
+            for (var y in titleList) {
+                localStorage.setItem(titleList[y], contentList[y])
+                location.reload()
+            }
+        }
+    }
+
+    //给选中字体加粗
+    $(".adjustDivAfterDiv").mouseenter(function (e) {
+        if (window.getSelection().toString().length === 0) {
+            return;
+        }
+        let topmouse = e.screenY - 250;
+        let toplength = parseInt($(document).scrollTop());
+        let realTop = topmouse + toplength;
+        let i = 0
+        $(".adjustDivAfterDiv button:not(.addCodeButton)").each(function () {
+            $(this).show()
+            $(this).css({"top": realTop + i})
+            i = i + 35;
+        })
+    })
+    $(".adjustDivAfterDiv").mouseleave(function () {
+        $(".adjustDivAfterDiv button").hide()
+    })
+    $(".adjustDivAfterDiv button").click(function () {
+        let btnEle = $(this)
+        let selCon = window.getSelection();
+        let ele;
+        if (selCon.toString().length !== 0) {
+            var rang = selCon.getRangeAt(0);
+            if (btnEle.attr("btn") === "1") {
+                ele = $("<span  style='color: #c40000 ;font-weight: 900; margin: 0px 3px;'><span/>")[0]
+            } else {
+                if (btnEle.attr("btn") === "2") {
+                    ele = $("<span  style=' font-weight: 900; margin: 0px 3px;'><span/>")[0]
+                } else {
+                    if (btnEle.attr("btn") === "3") {
+                        ele = $("<span style='font-weight: 900; font-size: 17px;'></span>")[0]
+                    } else {
+                        if (btnEle.attr("btn") === "4") {
+                            ele = $("<span style='color: #c9a958; font-weight: 900; margin: 0px 3px'></span>")[0]
+                        }
+                    }
+                }
+            }
+            rang.surroundContents(ele);
+            window.getSelection().empty()
+        }
+    })
+
+//    调整标题位置
+    let titlelinkIndex;
+    $(".titleLink").mousedown(function (e){
+        let titleThis = $(this)
+        let titleText = $(this).text();
+        let titleTextList = titleText.split(".");
+        titlelinkIndex = parseInt(titleTextList[0]);
+        if(e.which === 3){
+            $("<input id='changeTitleSite' style='width: 30px'>").appendTo(titleThis);
+            setTimeout(function (){
+                $("#changeTitleSite").focus()
+            }, 100)
+        }
+    })
+    $(".titleDiv").on("blur", "#changeTitleSite", function (){
+        let indexNum = $("#changeTitleSite").val();
+        if(indexNum.length <=0){
+            $("#changeTitleSite").remove()
+            return;
+        }
+        indexNum = parseInt(indexNum);
+
+        let tit = getTitle();
+        if(indexNum <1 || tit.length < indexNum){
+            $("#changeTitleSite").remove()
+            return;
+        }
+        let TitleChangedList = [];
+        let changedTitle;
+        for (let j = 0; j <tit.length; j++) {
+            if(titlelinkIndex-1 === j){
+                changedTitle = tit[j];
+                continue;
+            }
+            TitleChangedList.push(tit[j]);
+        }
+        // alert(changedTitle)
+        TitleChangedList.splice(indexNum-1, 0, changedTitle);
+        // console.log(TitleChangedList)
+        // alert(changedTitle)
+        saveTitles(TitleChangedList);
+        location.reload()
+
+        $("#changeTitleSite").remove()
+    })
+
+    //页面滚动自动隐藏标题栏
+    let scrollIndex = -1;
+    $(document).scroll(function (){
+        let top = $(this).scrollTop();
+        top = parseInt(top)
+        if(scrollIndex !== 0){
+            if(top > 1){
+                scrollIndex = 0;
+                $(".hideTitle").click()
+                $(".upToTop").show();
+            }
+        }
+        if(scrollIndex === 0 && top < 1){
+            $(".hideTitle").click()
+            scrollIndex = 1;
+            $(".upToTop").hide()
+        }
+    })
+
+//  页面滚到顶部
+    $(".upToTop").mouseenter(function (){
+        $(document).scrollTop(0)
+    })
+
+    $(".searchTitle").click(function (){
+        $(this).hide()
+        $(".searchInput").show()
+        $(".searchInput").focus()
+    })
+    $(".searchInput").keyup(function (e){
+        if(e.which === 13){
+            let val = $(this).val()
+            let titleText = $(".titleDiv").text();
+            let reg = new RegExp(val, "i");
+            let index = titleText.search(reg);
+            if(index === -1){
+                $(this).css("border", "2px solid #c40000")
+                return
+            }
+            let preStr = titleText.substring(0, index)
+            let realIndex = preStr.lastIndexOf(".");
+            let num = preStr.substring(realIndex-4, realIndex);
+            num = parseInt(num);
+
+            let titleEleIndex = 0;
+            $(".titleLink").each(function (){
+                ++titleEleIndex;
+                let ele = $(this)[0]
+                if(num === titleEleIndex){
+                    ele.click()
+                }
+            })
+        }
+    })
+    $(".searchInput").blur(function (){
+        $(this).hide();
+        $(".searchTitle").show();
+        $(this).val("")
+        $(this).css("border", "")
+    })
+
+</script>
+
+<style>
+    .upToTop{
+        position: fixed;
+        top: 20px;
+        left: 10px;
+        cursor: pointer;
+        color: #c7edcc;
+        font-size: 50px !important;
+    }
+</style>
+
